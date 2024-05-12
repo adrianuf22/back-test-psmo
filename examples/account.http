@@ -1,0 +1,14 @@
+@base=https://0.0.0.0:3000
+
+### get account
+
+GET {{base}}/v1/accounts/1
+
+### create account
+
+POST {{base}}/v1/accounts
+Content-Type: application/json
+
+{
+  "document_number": "1234567809"
+}

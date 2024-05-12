@@ -14,6 +14,7 @@ import (
 	"github.com/adrianuf22/back-test-psmo/internal/adapter/handler"
 	"github.com/adrianuf22/back-test-psmo/internal/adapter/postgres"
 	"github.com/adrianuf22/back-test-psmo/internal/config"
+	"github.com/adrianuf22/back-test-psmo/internal/domain/account"
 	"github.com/adrianuf22/back-test-psmo/internal/domain/health"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -49,6 +50,7 @@ func main() {
 	app.initDatabase(ctx)
 	app.initError(ctx)
 	app.initHealth(ctx)
+	app.initAccount(ctx)
 
 	app.run(ctx)
 }
@@ -95,6 +97,11 @@ func initLogger() *slog.Logger {
 	return logger
 }
 
+func (a *App) initAccount(ctx context.Context) {
+	repository := postgres.NewAccount(a.db)
+	usecase := account.NewUsecase(repository)
+	handler.RegisterAccountHandler(ctx, a.router, *usecase)
+}
 
 func (a *App) initError(ctx context.Context) {
 	handler.RegisterErrorHandler(ctx, a.router)
