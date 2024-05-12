@@ -9,6 +9,22 @@ import (
 	"github.com/adrianuf22/back-test-psmo/internal/pkg/error/api"
 )
 
+type body struct {
+	Data interface{} `json:"data"`
+}
+
+func Json(w http.ResponseWriter, statusCode int, payload interface{}) {
+	w.Header().Set("Content-Type", "application/json")
+
+	if payload == nil {
+		payload = []byte("[]")
+	}
+
+	write(w, &body{
+		Data: payload,
+	}, statusCode)
+}
+
 func ErrorJson(w http.ResponseWriter, err error) {
 	w.Header().Set("Content-Type", "application/problem+json")
 

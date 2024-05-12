@@ -14,7 +14,7 @@ Requirements:
 docker-compose up
 ```
 
-> It should works: curl -i --request GET --url http://0.0.0.0:3000
+> It should works: curl -i --request GET --url http://0.0.0.0:3000/v1/health
 
 > Note: `docker-compose build` should be runned every a new change had been made. The current version of development environment of this application hasn't any kind of watch mode or automatic image re-build.
 
