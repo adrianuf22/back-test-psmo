@@ -11,6 +11,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/adrianuf22/back-test-psmo/internal/adapter/handler"
 	"github.com/adrianuf22/back-test-psmo/internal/config"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -44,6 +45,7 @@ func main() {
 	}
 
 	app.initDatabase(ctx)
+	app.initError(ctx)
 
 	app.run(ctx)
 }
@@ -90,6 +92,10 @@ func initLogger() *slog.Logger {
 	return logger
 }
 
+
+func (a *App) initError(ctx context.Context) {
+	handler.RegisterErrorHandler(ctx, a.router)
+}
 
 func (a *App) run(ctx context.Context) {
 	go func() {
