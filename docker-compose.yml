@@ -1,0 +1,35 @@
+version: "3.9" # Kept for retro compatibility - version is deprecated since v1.27
+
+services:
+  data:
+    image: postgres:alpine
+    restart: always
+    shm_size: 128mb
+    ports:
+      - 5432:5432
+    env_file:
+      - .env
+    volumes:
+      - ./misc/database/initialization.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $POSTGRES_USER"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: .
+      target: psmo-api
+    shm_size: 128mb
+    ports:
+      - 3000:3000
+    env_file:
+      - .env
+    environment:
+      POSTGRES_HOST: data
+    volumes:
+      - ./:/opt/psmo
+    depends_on:
+      data:
+        condition: service_healthy
