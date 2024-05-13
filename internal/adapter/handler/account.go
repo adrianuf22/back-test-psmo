@@ -12,7 +12,6 @@ import (
 	"github.com/adrianuf22/back-test-psmo/internal/pkg/error/json"
 	"github.com/adrianuf22/back-test-psmo/internal/pkg/handler/request"
 	"github.com/adrianuf22/back-test-psmo/internal/pkg/handler/response"
-	"github.com/go-chi/chi/v5"
 )
 
 type handler struct {
@@ -20,20 +19,19 @@ type handler struct {
 	usecase account.Usecase
 }
 
-func RegisterAccountHandler(ctx context.Context, router *chi.Mux, u account.Usecase) {
+func RegisterAccountHandler(ctx context.Context, router *http.ServeMux, u account.Usecase) {
 	h := &handler{
 		ctx:     ctx,
 		usecase: u,
 	}
 
-	router.Route("/v1/accounts", func(router chi.Router) {
-		router.Get("/{accountId}", h.Account)
-		router.Post("/", h.Create)
-	})
+	v1 := "/v1/account"
+	router.HandleFunc(request.Get.WithPath(v1, "/{accountId}"), h.Account)
+	router.HandleFunc(request.Post.WithPath(v1), h.Create)
 }
 
 func (h *handler) Account(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.Atoi(chi.URLParam(r, "accountId"))
+	id, err := strconv.Atoi(r.PathValue("accountId"))
 	if err != nil {
 		response.ErrorJson(w, api.ErrBadRequest)
 		log.Println(err)

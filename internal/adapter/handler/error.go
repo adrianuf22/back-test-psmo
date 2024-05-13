@@ -6,10 +6,9 @@ import (
 
 	"github.com/adrianuf22/back-test-psmo/internal/pkg/error/api"
 	"github.com/adrianuf22/back-test-psmo/internal/pkg/handler/response"
-	"github.com/go-chi/chi/v5"
 )
 
-func RegisterErrorHandler(ctx context.Context, router *chi.Mux) {
+func RegisterErrorHandler(ctx context.Context, router *http.ServeMux) {
 	router.HandleFunc("/*", func(w http.ResponseWriter, r *http.Request) {
 		response.ErrorJson(w, api.ErrNotFound)
 	})

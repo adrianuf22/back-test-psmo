@@ -16,14 +16,12 @@ import (
 	"github.com/adrianuf22/back-test-psmo/internal/config"
 	"github.com/adrianuf22/back-test-psmo/internal/domain/account"
 	"github.com/adrianuf22/back-test-psmo/internal/domain/health"
-	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
 	_ "github.com/lib/pq"
 )
 
 type App struct {
 	cfg        *config.Config
-	router     *chi.Mux
+	router     *http.ServeMux
 	db         *sql.DB
 	httpServer *http.Server
 	logger     *slog.Logger
@@ -33,8 +31,8 @@ func main() {
 	ctx := context.Background()
 	cfg := config.New()
 
-	router := chi.NewRouter()
-	router.Use(middleware.RequestID)
+	router := http.NewServeMux()
+	// router.Use(middleware.RequestID)
 
 	app := App{
 		cfg:    cfg,

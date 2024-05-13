@@ -5,20 +5,19 @@ import (
 	"net/http"
 
 	"github.com/adrianuf22/back-test-psmo/internal/domain/health"
+	"github.com/adrianuf22/back-test-psmo/internal/pkg/handler/request"
 	"github.com/adrianuf22/back-test-psmo/internal/pkg/handler/response"
-	"github.com/go-chi/chi/v5"
 )
 
-func RegisterHealthHandler(ctx context.Context, router *chi.Mux, u health.Usecase) {
-	router.Route("/v1/health", func(r chi.Router) {
-		liveness := func(w http.ResponseWriter, r *http.Request) {
-			response.Json(w, http.StatusOK, u.GetLivenessStatus())
-		}
+func RegisterHealthHandler(ctx context.Context, router *http.ServeMux, u health.Usecase) {
+	v1 := "/v1/health"
 
-		r.Get("/", liveness)
-		r.Get("/liveness", liveness)
-		r.Get("/readiness", func(w http.ResponseWriter, r *http.Request) {
-			response.Json(w, http.StatusOK, u.GetReadinessStatus())
-		})
+	liveness := func(w http.ResponseWriter, r *http.Request) {
+		response.Json(w, http.StatusOK, u.GetLivenessStatus())
+	}
+	router.HandleFunc(request.Get.WithPath(v1), liveness)
+	router.HandleFunc(request.Get.WithPath(v1, "/liveness"), liveness)
+	router.HandleFunc(request.Get.WithPath(v1, "/readiness"), func(w http.ResponseWriter, r *http.Request) {
+		response.Json(w, http.StatusOK, u.GetReadinessStatus())
 	})
 }
