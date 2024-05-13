@@ -62,7 +62,7 @@ func (a *App) initDatabase(ctx context.Context) {
 	a.db.SetMaxOpenConns(a.cfg.Database.MaxOpenConns)
 	a.db.SetMaxIdleConns(a.cfg.Database.MaxIdleConns)
 
-	ctx, cancel := context.WithTimeout(ctx, time.Duration(a.cfg.Database.TimeoutMS)*time.Second)
+	ctx, cancel := context.WithTimeout(ctx, time.Duration(a.cfg.Database.Timeout)*time.Millisecond)
 	defer cancel()
 
 	err = a.db.PingContext(ctx)

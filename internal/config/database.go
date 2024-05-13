@@ -16,7 +16,7 @@ type Database struct {
 	SSLMode      string `split_words:"true" default:"disable"`
 	MaxOpenConns int    `default:"5"`
 	MaxIdleConns int    `default:"5"`
-	TimeoutMS    int    `default:"15000"`
+	Timeout      int    `default:"15000"`
 }
 
 func NewDatabase() Database {
