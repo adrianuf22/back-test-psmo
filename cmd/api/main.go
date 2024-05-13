@@ -11,7 +11,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/adrianuf22/back-test-psmo/internal/adapter/handler"
+	"github.com/adrianuf22/back-test-psmo/internal/adapter/mux"
 	"github.com/adrianuf22/back-test-psmo/internal/adapter/postgres"
 	"github.com/adrianuf22/back-test-psmo/internal/config"
 	"github.com/adrianuf22/back-test-psmo/internal/domain/account"
@@ -105,10 +105,10 @@ func (a *App) initHandlers(ctx context.Context) {
 	transactionUsecase := transaction.NewUsecase(transactionRepository, accountRepository)
 	healthUsecase := health.NewUsecase(healthRepository)
 
-	handler.RegisterAccountHandler(ctx, a.router, accountUsecase)
-	handler.RegisterTransactionHandler(ctx, a.router, transactionUsecase)
-	handler.RegisterErrorHandler(ctx, a.router)
-	handler.RegisterHealthHandler(ctx, a.router, *healthUsecase)
+	mux.RegisterAccountHandler(ctx, a.router, accountUsecase)
+	mux.RegisterTransactionHandler(ctx, a.router, transactionUsecase)
+	mux.RegisterErrorHandler(ctx, a.router)
+	mux.RegisterHealthHandler(ctx, a.router, *healthUsecase)
 }
 
 func (a *App) run(ctx context.Context) {
