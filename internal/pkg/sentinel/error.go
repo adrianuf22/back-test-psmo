@@ -1,4 +1,4 @@
-package api
+package sentinel
 
 import (
 	"net/http"

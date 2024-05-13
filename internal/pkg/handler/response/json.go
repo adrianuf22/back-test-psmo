@@ -6,7 +6,7 @@ import (
 	"log/slog"
 	"net/http"
 
-	"github.com/adrianuf22/back-test-psmo/internal/pkg/error/api"
+	"github.com/adrianuf22/back-test-psmo/internal/pkg/sentinel"
 )
 
 type body struct {
@@ -28,10 +28,9 @@ func Json(w http.ResponseWriter, statusCode int, payload interface{}) {
 func ErrorJson(w http.ResponseWriter, err error) {
 	w.Header().Set("Content-Type", "application/problem+json")
 
-	var httpErr api.Error
+	var httpErr sentinel.Error
 	if !errors.As(err, &httpErr) {
-		slog.Error(err.Error())
-		httpErr = api.ErrInternal
+		httpErr = sentinel.ErrInternal
 	}
 
 	status, msg := httpErr.HttpError()
@@ -64,5 +63,5 @@ func write(w http.ResponseWriter, payload interface{}, statusCode int) {
 
 func writeFatalError(w http.ResponseWriter) {
 	w.WriteHeader(http.StatusInternalServerError)
-	w.Write(api.ErrSafeFatal)
+	w.Write(sentinel.ErrSafeFatal)
 }

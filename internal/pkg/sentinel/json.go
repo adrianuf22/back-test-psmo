@@ -1,20 +1,18 @@
-package json
+package sentinel
 
 import (
 	"encoding/json"
 	"errors"
 	"strings"
-
-	"github.com/adrianuf22/back-test-psmo/internal/pkg/error/api"
 )
 
-func WrapError(err error) error {
+func WrapJsonError(err error) error {
 	shouldHandle := errors.Is(err, &json.UnmarshalTypeError{}) ||
 		errors.Is(err, &json.SyntaxError{}) ||
 		strings.Contains(err.Error(), "json:")
 
 	if shouldHandle {
-		return api.WrapError(err, api.ErrBadRequest)
+		return WrapError(err, ErrBadRequest)
 	}
 
 	return err

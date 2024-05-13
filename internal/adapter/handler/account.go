@@ -8,10 +8,10 @@ import (
 	"time"
 
 	"github.com/adrianuf22/back-test-psmo/internal/domain/account"
-	"github.com/adrianuf22/back-test-psmo/internal/pkg/error/api"
-	"github.com/adrianuf22/back-test-psmo/internal/pkg/error/json"
+
 	"github.com/adrianuf22/back-test-psmo/internal/pkg/handler/request"
 	"github.com/adrianuf22/back-test-psmo/internal/pkg/handler/response"
+	"github.com/adrianuf22/back-test-psmo/internal/pkg/sentinel"
 )
 
 type handler struct {
@@ -33,7 +33,7 @@ func RegisterAccountHandler(ctx context.Context, router *http.ServeMux, u accoun
 func (h *handler) Account(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(r.PathValue("accountId"))
 	if err != nil {
-		response.ErrorJson(w, api.ErrBadRequest)
+		response.ErrorJson(w, sentinel.ErrBadRequest)
 		log.Println(err)
 		return
 	}

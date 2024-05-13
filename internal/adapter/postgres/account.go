@@ -5,7 +5,7 @@ import (
 	"database/sql"
 
 	"github.com/adrianuf22/back-test-psmo/internal/domain/account"
-	"github.com/adrianuf22/back-test-psmo/internal/pkg/error/db"
+	"github.com/adrianuf22/back-test-psmo/internal/pkg/sentinel"
 )
 
 type accountRepo struct {
@@ -25,7 +25,7 @@ func (a *accountRepo) Read(ctx context.Context, documentNumber int) (*account.Mo
 		&account.DocumentNumber,
 	)
 	if err != nil {
-		return nil, db.WrapError(err)
+		return nil, sentinel.WrapDBError(err)
 	}
 
 	return account, nil
@@ -35,7 +35,7 @@ func (a *accountRepo) Create(ctx context.Context, account *account.Model) error 
 	var id int64
 	err := a.DB.QueryRow(`INSERT INTO accounts (document_number) VALUES ($1) RETURNING id`, account.DocumentNumber).Scan(&id)
 	if err != nil {
-		return db.WrapError(err)
+		return sentinel.WrapDBError(err)
 	}
 
 	account.SetID(id)
