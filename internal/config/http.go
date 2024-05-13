@@ -3,9 +3,10 @@ package config
 import "github.com/kelseyhightower/envconfig"
 
 type Http struct {
-	MaxBytesReader    int    `default:"1048576" split_words:"true"`
-	ReadHeaderTimeout int    `default:"10000" split_words:"true"`
-	Port              string `default:"3000"`
+	MaxBytesReader int    `default:"1048576" split_words:"true"`
+	ReadTimeout    int    `default:"10000" split_words:"true"`
+	WriteTimeout   int    `default:"10000" split_words:"true"`
+	Port           string `default:"3000"`
 }
 
 func NewHttp() Http {

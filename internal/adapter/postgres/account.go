@@ -3,42 +3,53 @@ package postgres
 import (
 	"context"
 	"database/sql"
+	_ "embed"
 
 	"github.com/adrianuf22/back-test-psmo/internal/domain/account"
 	"github.com/adrianuf22/back-test-psmo/internal/pkg/sentinel"
 )
 
+//go:embed sql/get_account.sql
+var getAccountSql string
+
+//go:embed sql/create_account.sql
+var createAccountSql string
+
 type accountRepo struct {
-	DB *sql.DB
+	db *sql.DB
 }
 
-func NewAccount(db *sql.DB) *accountRepo {
+func NewAccountRepo(db *sql.DB) *accountRepo {
 	return &accountRepo{
-		DB: db,
+		db: db,
 	}
 }
 
-func (a *accountRepo) Read(ctx context.Context, documentNumber int) (*account.Model, error) {
-	account := &account.Model{}
-	err := a.DB.QueryRowContext(ctx, `SELECT id, document_number FROM accounts WHERE document_number = $1`, documentNumber).Scan(
-		&account.ID,
-		&account.DocumentNumber,
+func (r *accountRepo) Read(ctx context.Context, id int64) (*account.Model, error) {
+	var accountId int
+	var documentNumber string
+
+	err := r.db.QueryRowContext(ctx, getAccountSql, id).Scan(
+		&accountId,
+		&documentNumber,
 	)
 	if err != nil {
 		return nil, sentinel.WrapDBError(err)
 	}
 
-	return account, nil
+	return account.NewModel(int64(accountId), documentNumber), nil
 }
 
-func (a *accountRepo) Create(ctx context.Context, account *account.Model) error {
-	var id int64
-	err := a.DB.QueryRow(`INSERT INTO accounts (document_number) VALUES ($1) RETURNING id`, account.DocumentNumber).Scan(&id)
+func (r *accountRepo) Create(ctx context.Context, model *account.Model) error {
+	var insertedId int64
+	err := r.db.QueryRow(createAccountSql, model.DocumentNumber()).
+		Scan(&insertedId)
+
 	if err != nil {
 		return sentinel.WrapDBError(err)
 	}
 
-	account.SetID(id)
+	model.SetID(insertedId)
 
 	return nil
 }

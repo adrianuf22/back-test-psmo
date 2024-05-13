@@ -4,22 +4,27 @@ import (
 	"context"
 )
 
-type Usecase struct {
+type Usecase interface {
+	GetAccountById(context.Context, int64) (*Model, error)
+	CreateAccount(context.Context, Input) (*Model, error)
+}
+
+type usecase struct {
 	service Service
 }
 
-func NewUsecase(service Service) *Usecase {
-	return &Usecase{
+func NewUsecase(service Service) *usecase {
+	return &usecase{
 		service: service,
 	}
 }
 
-func (u *Usecase) GetAccountById(ctx context.Context, id int) (*Model, error) {
+func (u *usecase) GetAccountById(ctx context.Context, id int64) (*Model, error) {
 	return u.service.Read(ctx, id)
 }
 
-func (u *Usecase) CreateAccount(ctx context.Context, input Model) (*Model, error) {
-	account := &Model{DocumentNumber: input.DocumentNumber}
+func (u *usecase) CreateAccount(ctx context.Context, input Input) (*Model, error) {
+	account := &Model{documentNumber: input.DocumentNumber}
 	err := u.service.Create(ctx, account)
 
 	return account, err

@@ -16,6 +16,7 @@ import (
 	"github.com/adrianuf22/back-test-psmo/internal/config"
 	"github.com/adrianuf22/back-test-psmo/internal/domain/account"
 	"github.com/adrianuf22/back-test-psmo/internal/domain/health"
+	"github.com/adrianuf22/back-test-psmo/internal/domain/transaction"
 	_ "github.com/lib/pq"
 )
 
@@ -32,23 +33,21 @@ func main() {
 	cfg := config.New()
 
 	router := http.NewServeMux()
-	// router.Use(middleware.RequestID)
 
 	app := App{
 		cfg:    cfg,
 		router: router,
 		httpServer: &http.Server{
-			Addr:              ":" + cfg.Http.Port,
-			Handler:           router,
-			ReadHeaderTimeout: time.Duration(cfg.Http.ReadHeaderTimeout),
+			Addr:         ":" + cfg.Http.Port,
+			Handler:      router,
+			ReadTimeout:  time.Duration(cfg.Http.ReadTimeout) * time.Millisecond,
+			WriteTimeout: time.Duration(cfg.Http.WriteTimeout) * time.Millisecond,
 		},
 		logger: initLogger(),
 	}
 
 	app.initDatabase(ctx)
-	app.initError(ctx)
-	app.initHealth(ctx)
-	app.initAccount(ctx)
+	app.initHandlers(ctx)
 
 	app.run(ctx)
 }
@@ -95,20 +94,21 @@ func initLogger() *slog.Logger {
 	return logger
 }
 
-func (a *App) initAccount(ctx context.Context) {
-	repository := postgres.NewAccount(a.db)
-	usecase := account.NewUsecase(repository)
-	handler.RegisterAccountHandler(ctx, a.router, *usecase)
-}
+func (a *App) initHandlers(ctx context.Context) {
+	// Repositories
+	accountRepository := postgres.NewAccountRepo(a.db)
+	transactionRepository := postgres.NewTransactionRepo(a.db)
+	healthRepository := postgres.NewHealthRepo(a.db)
 
-func (a *App) initError(ctx context.Context) {
+	// Usecases
+	accountUsecase := account.NewUsecase(accountRepository)
+	transactionUsecase := transaction.NewUsecase(transactionRepository, accountRepository)
+	healthUsecase := health.NewUsecase(healthRepository)
+
+	handler.RegisterAccountHandler(ctx, a.router, accountUsecase)
+	handler.RegisterTransactionHandler(ctx, a.router, transactionUsecase)
 	handler.RegisterErrorHandler(ctx, a.router)
-}
-
-func (a *App) initHealth(ctx context.Context) {
-	repository := postgres.NewHealth(a.db)
-	usecase := health.NewUsecase(repository)
-	handler.RegisterHealthHandler(ctx, a.router, *usecase)
+	handler.RegisterHealthHandler(ctx, a.router, *healthUsecase)
 }
 
 func (a *App) run(ctx context.Context) {

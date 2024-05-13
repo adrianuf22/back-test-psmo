@@ -26,3 +26,10 @@ go run ./cmd/api/
 
 ## Test
 
+```
+go test ./...
+```
+
+### Examples
+
+The directory `./examples` has http files with request functional examples that could be runned from IDE (Requires a HTTP client extension).

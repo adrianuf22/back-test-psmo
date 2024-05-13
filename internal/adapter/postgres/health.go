@@ -6,7 +6,7 @@ type healthRepo struct {
 	db *sql.DB
 }
 
-func NewHealth(db *sql.DB) *healthRepo {
+func NewHealthRepo(db *sql.DB) *healthRepo {
 	return &healthRepo{
 		db: db,
 	}

@@ -1,0 +1,1 @@
+SELECT id, document_number FROM accounts WHERE id = $1

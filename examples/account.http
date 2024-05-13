@@ -1,12 +1,12 @@
-@base=https://0.0.0.0:3000
+@base=http://0.0.0.0:3000
 
-### get account
+### @name get account
 
-GET {{base}}/v1/accounts/1
+GET {{base}}/v1/accounts/1 HTTP/1.1
 
 ### create account
 
-POST {{base}}/v1/accounts
+POST {{base}}/v1/accounts HTTP/1.1
 Content-Type: application/json
 
 {

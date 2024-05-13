@@ -1,0 +1,12 @@
+@base=http://0.0.0.0:3000
+
+# create a transaction
+
+POST {{base}}/v1/transactions HTTP/1.1
+Content-Type: application/json
+
+{
+    "account_id": 2,
+    "operation_type_id": 4,
+    "amount": 24.5
+}

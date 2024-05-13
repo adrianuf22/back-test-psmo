@@ -2,26 +2,31 @@ package account
 
 import "context"
 
-type Model struct {
-	ID             int64  `json:"account_id"`
-	DocumentNumber string `json:"document_number"`
-}
-
 type Service interface {
-	Read(context.Context, int) (*Model, error)
+	Read(context.Context, int64) (*Model, error)
 	Create(context.Context, *Model) error
 }
 
-func (m *Model) SetID(id int64) {
-	m.ID = id
+type Model struct {
+	id             int64
+	documentNumber string
 }
 
-func (m *Model) Validate() map[string]string {
-	errs := make(map[string]string)
-
-	if m.DocumentNumber == "" {
-		errs["documentNumber"] = "document number is required"
+func NewModel(id int64, documentNumber string) *Model {
+	return &Model{
+		id:             id,
+		documentNumber: documentNumber,
 	}
+}
 
-	return errs
+func (m *Model) ID() int64 {
+	return m.id
+}
+
+func (m *Model) SetID(id int64) {
+	m.id = id
+}
+
+func (m *Model) DocumentNumber() string {
+	return m.documentNumber
 }
