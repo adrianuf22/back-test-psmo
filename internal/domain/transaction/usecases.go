@@ -28,8 +28,26 @@ func (u *usecase) CreateTransaction(ctx context.Context, input Input) (*Model, e
 		return nil, err
 	}
 
-	transaction := NewModel(account.ID(), input.OperationTypeID, input.Amount)
+	transaction := NewTransaction(account.ID(), input.OperationTypeID, input.Amount)
 	err = u.service.Create(transaction)
+
+	if transaction.operationTypeID == Payment {
+		purchases, err := u.service.ReadAllPurchases(input.AccountID)
+		if err != nil {
+			// TODO
+			return nil, err
+		}
+
+		paymentBalance := input.Amount
+		for _, p := range purchases {
+			if paymentBalance <= 0 {
+				break
+			}
+			paymentBalance, _ = p.Discharge(paymentBalance)
+		}
+
+		err = u.service.Save(purchases)
+	}
 
 	return transaction, err
 }

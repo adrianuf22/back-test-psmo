@@ -1,9 +1,14 @@
 package transaction
 
-import "time"
+import (
+	"errors"
+	"time"
+)
 
 type Service interface {
 	Create(*Model) error
+	ReadAllPurchases(int64) ([]Model, error)
+	Save([]Model) error
 }
 
 type OperationTypeID int
@@ -21,14 +26,26 @@ type Model struct {
 	accountID       int64
 	operationTypeID OperationTypeID
 	amount          float64
+	balance         float64
 	eventDate       time.Time
 }
 
-func NewModel(accountId int64, operationTypeId int, amount float64) *Model {
+func NewTransaction(accountId int64, operationTypeId int, amount float64) *Model {
 	return &Model{
 		accountID:       accountId,
 		operationTypeID: OperationTypeID(operationTypeId),
 		amount:          amount,
+		eventDate:       time.Now(),
+	}
+}
+
+func NewModel(id int64, accountId int64, operationTypeId int, amount float64, balance float64, eventDate time.Time) *Model {
+	return &Model{
+		id:              id,
+		accountID:       accountId,
+		operationTypeID: OperationTypeID(operationTypeId),
+		amount:          amount,
+		balance:         balance,
 		eventDate:       time.Now(),
 	}
 }
@@ -51,10 +68,29 @@ func (m *Model) OperationTypeID() int {
 
 func (m *Model) Amount() float64 {
 	if m.operationTypeID == Payment {
-		return asPositiveBalance(m.amount)
+		return asPositiveAmount(m.amount)
 	}
 
-	return asNegativeBalance(m.amount)
+	return asNegativeAmount(m.amount)
+}
+
+func (m *Model) Balance() float64 {
+	return m.balance
+}
+
+func (m *Model) Discharge(amount float64) (float64, error) {
+	if m.operationTypeID == Payment {
+		return amount, errors.New("Operation type Payment is not allowed")
+	}
+
+	amount = amount - asPositiveAmount(m.balance)
+	if amount >= 0 {
+		m.balance = 0
+		return amount, nil
+	}
+	m.balance = amount
+
+	return 0, nil
 }
 
 func (m *Model) EventDate() time.Time {
@@ -71,7 +107,7 @@ func (m *Model) Validate() map[string]string {
 	return errs
 }
 
-func asPositiveBalance(amount float64) float64 {
+func asPositiveAmount(amount float64) float64 {
 	if amount < 0 {
 		return amount * -1
 	}
@@ -79,7 +115,7 @@ func asPositiveBalance(amount float64) float64 {
 	return amount
 }
 
-func asNegativeBalance(amount float64) float64 {
+func asNegativeAmount(amount float64) float64 {
 	if amount > 0 {
 		return amount * -1
 	}
