@@ -1,6 +1,6 @@
 # back-test-psmo
 
-A Golang REST API application using `http.ServeMux` router, `pq` Postgres driver, `godotenv` with `envconfig` handle configuration.
+A Golang REST API application using `http.ServeMux` router, `pgx` Postgres driver, `godotenv` with `envconfig` handle configuration.
 
 Requirements:
 - Go 1.22+ (For build only)
@@ -29,6 +29,8 @@ go run ./cmd/api/
 ```
 go test ./...
 ```
+
+> Docker required: This project uses Testcontainers for integration tests (See ./integration_test directory)
 
 ### Examples
 

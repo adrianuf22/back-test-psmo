@@ -10,6 +10,7 @@ import (
 	"github.com/adrianuf22/back-test-psmo/internal/pkg/atomic"
 	"github.com/adrianuf22/back-test-psmo/internal/pkg/sentinel"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 //go:embed sql/create_transaction.sql
@@ -26,10 +27,10 @@ type transactRepo struct {
 }
 
 type atomicTransactRepo struct {
-	db *pgx.Conn
+	db *pgxpool.Conn
 }
 
-func NewTransactionRepo(db *pgx.Conn) atomicTransactRepo {
+func NewTransactionRepo(db *pgxpool.Conn) atomicTransactRepo {
 	return atomicTransactRepo{
 		db: db,
 	}
@@ -73,7 +74,7 @@ func (r transactRepo) ReadAllPurchases(ctx context.Context, accountId int64) ([]
 			id              int64
 			operationTypeID int
 			amount,
-			balance float64
+			balance int64
 			eventDate time.Time
 		)
 
@@ -83,7 +84,7 @@ func (r transactRepo) ReadAllPurchases(ctx context.Context, accountId int64) ([]
 			return nil, sentinel.WrapDBError(err)
 		}
 
-		all = append(all, *transaction.NewModel(id, accountId, operationTypeID, amount, balance, eventDate))
+		all = append(all, *transaction.NewModel(id, accountId, operationTypeID, intAsMoney(amount), intAsMoney(balance), eventDate))
 	}
 
 	return all, nil
@@ -92,9 +93,15 @@ func (r transactRepo) ReadAllPurchases(ctx context.Context, accountId int64) ([]
 func (r transactRepo) Create(ctx context.Context, model *transaction.Model) error {
 	var insertedId int64
 
-	iAmount := int64(model.Amount() * 100)
-
-	err := r.db.QueryRow(ctx, createTransactionSql, model.AccountID(), model.OperationTypeID(), iAmount, model.EventDate()).
+	err := r.db.QueryRow(
+		ctx,
+		createTransactionSql,
+		model.AccountID(),
+		model.OperationTypeID(),
+		moneyAsInt(model.Amount()),
+		moneyAsInt(model.Balance()),
+		model.EventDate(),
+	).
 		Scan(&insertedId)
 
 	if err != nil {
@@ -122,6 +129,15 @@ func (r transactRepo) UpdateAll(ctx context.Context, transactions []transaction.
 	if err != nil {
 		return err
 	}
+	defer results.Close()
 
 	return nil
+}
+
+func moneyAsInt(m float64) int64 {
+	return int64(m * 100)
+}
+
+func intAsMoney(i int64) float64 {
+	return float64(i / 100.0)
 }

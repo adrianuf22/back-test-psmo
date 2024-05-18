@@ -16,14 +16,13 @@ import (
 	"github.com/adrianuf22/back-test-psmo/internal/domain/account"
 	"github.com/adrianuf22/back-test-psmo/internal/domain/health"
 	"github.com/adrianuf22/back-test-psmo/internal/domain/transaction"
-	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type Server struct {
 	Cfg        *config.Config
 	Router     *http.ServeMux
-	Db         *pgx.Conn
+	Db         *pgxpool.Conn
 	HttpServer *http.Server
 	Logger     *slog.Logger
 }
@@ -69,11 +68,10 @@ func (s *Server) initDatabase(ctx context.Context) {
 		panic(fmt.Errorf(`error on starting pool connection %w`, err))
 	}
 
-	acquired, err := pool.Acquire(ctx)
+	s.Db, err = pool.Acquire(ctx)
 	if err != nil {
 		panic(fmt.Errorf(`error on opening db connection %w`, err))
 	}
-	s.Db = acquired.Conn()
 
 	// s.db.SetMaxOpenConns(s.cfg.Database.MaxOpenConns)
 	// s.db.SetMaxIdleConns(s.cfg.Database.MaxIdleConns)
@@ -122,6 +120,6 @@ func (s *Server) gracefulShutdown(ctx context.Context) {
 }
 
 func (s *Server) closeResources(ctx context.Context, shutdown context.CancelFunc) {
-	s.Db.Close(ctx)
+	s.Db.Conn().Close(ctx)
 	shutdown()
 }
