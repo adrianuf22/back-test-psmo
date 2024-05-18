@@ -10,10 +10,10 @@ type Usecase interface {
 }
 
 type usecase struct {
-	service Service
+	service Repository
 }
 
-func NewUsecase(service Service) *usecase {
+func NewUsecase(service Repository) *usecase {
 	return &usecase{
 		service: service,
 	}

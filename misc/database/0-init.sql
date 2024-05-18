@@ -9,8 +9,8 @@ CREATE TABLE transactions (
     account_id integer,
     operation_type integer,
     amount bigint,
+    balance bigint,
     event_date timestamp,
     CONSTRAINT fk_account_id FOREIGN KEY(account_id) REFERENCES accounts(id)
 );
 COMMIT;
-

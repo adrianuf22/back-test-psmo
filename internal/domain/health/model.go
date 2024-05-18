@@ -1,5 +1,7 @@
 package health
 
+import "context"
+
 type Status struct {
 	Value string `json:"status"`
 }
@@ -10,5 +12,5 @@ var (
 )
 
 type Service interface {
-	Readiness() error
+	Readiness(ctx context.Context) error
 }

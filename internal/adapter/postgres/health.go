@@ -1,17 +1,21 @@
 package postgres
 
-import "database/sql"
+import (
+	"context"
+
+	"github.com/jackc/pgx/v5"
+)
 
 type healthRepo struct {
-	db *sql.DB
+	db *pgx.Conn
 }
 
-func NewHealthRepo(db *sql.DB) *healthRepo {
+func NewHealthRepo(db *pgx.Conn) *healthRepo {
 	return &healthRepo{
 		db: db,
 	}
 }
 
-func (r *healthRepo) Readiness() error {
-	return r.db.Ping()
+func (r *healthRepo) Readiness(ctx context.Context) error {
+	return r.db.Ping(ctx)
 }

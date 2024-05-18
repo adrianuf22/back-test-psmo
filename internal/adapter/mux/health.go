@@ -1,4 +1,4 @@
-package handler
+package mux
 
 import (
 	"context"
@@ -18,6 +18,6 @@ func RegisterHealthHandler(ctx context.Context, router *http.ServeMux, u health.
 	router.HandleFunc(request.Get.WithPath(v1), liveness)
 	router.HandleFunc(request.Get.WithPath(v1, "/liveness"), liveness)
 	router.HandleFunc(request.Get.WithPath(v1, "/readiness"), func(w http.ResponseWriter, r *http.Request) {
-		response.Json(w, http.StatusOK, u.GetReadinessStatus())
+		response.Json(w, http.StatusOK, u.GetReadinessStatus(ctx))
 	})
 }

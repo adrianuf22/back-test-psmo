@@ -30,6 +30,7 @@ func ErrorJson(w http.ResponseWriter, err error) {
 
 	var httpErr sentinel.Error
 	if !errors.As(err, &httpErr) {
+		slog.Error(err.Error())
 		httpErr = sentinel.ErrInternal
 	}
 
