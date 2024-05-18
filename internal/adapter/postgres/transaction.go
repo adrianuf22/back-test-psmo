@@ -123,6 +123,7 @@ func (r transactRepo) UpdateAll(ctx context.Context, transactions []transaction.
 	if err != nil {
 		return err
 	}
+	defer results.Close()
 
 	return nil
 }
