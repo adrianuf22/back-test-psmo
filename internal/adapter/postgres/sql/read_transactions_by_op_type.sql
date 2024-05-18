@@ -1,0 +1,1 @@
+SELECT id, operation_type, amount, balance, event_date FROM transactions WHERE account_id = $1 AND operation_type = any($2)

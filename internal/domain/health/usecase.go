@@ -1,5 +1,7 @@
 package health
 
+import "context"
+
 type Usecase struct {
 	service Service
 }
@@ -14,8 +16,8 @@ func (u *Usecase) GetLivenessStatus() *Status {
 	return &UP
 }
 
-func (u *Usecase) GetReadinessStatus() *Status {
-	err := u.service.Readiness()
+func (u *Usecase) GetReadinessStatus(ctx context.Context) *Status {
+	err := u.service.Readiness(ctx)
 	if err != nil {
 		return &OutOfService
 	}

@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"log/slog"
 	"net/http"
@@ -17,13 +16,14 @@ import (
 	"github.com/adrianuf22/back-test-psmo/internal/domain/account"
 	"github.com/adrianuf22/back-test-psmo/internal/domain/health"
 	"github.com/adrianuf22/back-test-psmo/internal/domain/transaction"
-	_ "github.com/lib/pq"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type App struct {
 	cfg        *config.Config
 	router     *http.ServeMux
-	db         *sql.DB
+	db         *pgx.Conn
 	httpServer *http.Server
 	logger     *slog.Logger
 }
@@ -53,19 +53,24 @@ func main() {
 }
 
 func (a *App) initDatabase(ctx context.Context) {
-	var err error
-	a.db, err = sql.Open(a.cfg.Database.Driver, a.cfg.Database.DSN())
+	pool, err := pgxpool.New(ctx, a.cfg.Database.Dsn)
+	if err != nil {
+		panic(fmt.Errorf(`error on starting pool connection %w`, err))
+	}
+
+	acquired, err := pool.Acquire(ctx)
 	if err != nil {
 		panic(fmt.Errorf(`error on opening db connection %w`, err))
 	}
+	a.db = acquired.Conn()
 
-	a.db.SetMaxOpenConns(a.cfg.Database.MaxOpenConns)
-	a.db.SetMaxIdleConns(a.cfg.Database.MaxIdleConns)
+	// s.db.SetMaxOpenConns(s.cfg.Database.MaxOpenConns)
+	// s.db.SetMaxIdleConns(s.cfg.Database.MaxIdleConns)
 
-	ctx, cancel := context.WithTimeout(ctx, time.Duration(a.cfg.Database.Timeout)*time.Millisecond)
+	ctx, cancel := context.WithTimeout(ctx, time.Duration(s.Cfg.Database.Timeout)*time.Millisecond)
 	defer cancel()
 
-	err = a.db.PingContext(ctx)
+	err = a.db.Ping(ctx)
 	if err != nil {
 		panic(fmt.Errorf(`error on verifying db connection %w`, err))
 	}

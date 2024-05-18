@@ -5,11 +5,10 @@ import (
 	"time"
 )
 
-type Service interface {
-	Create(*Model) error
-	ReadAllPurchases(int64) ([]Model, error)
-	Save([]Model) error
-}
+var (
+	ErrOperationTypeNotAllowed = errors.New("operation type is not allowed")
+	ErrInsufficientAmount      = errors.New("insufficient amount for operation")
+)
 
 type OperationTypeID int
 
@@ -31,21 +30,26 @@ type Model struct {
 }
 
 func NewTransaction(accountId int64, operationTypeId int, amount float64) *Model {
+	o := OperationTypeID(operationTypeId)
+
 	return &Model{
 		accountID:       accountId,
-		operationTypeID: OperationTypeID(operationTypeId),
-		amount:          amount,
+		operationTypeID: o,
+		amount:          moneyByOperation(amount, o),
+		balance:         moneyByOperation(amount, o),
 		eventDate:       time.Now(),
 	}
 }
 
 func NewModel(id int64, accountId int64, operationTypeId int, amount float64, balance float64, eventDate time.Time) *Model {
+	o := OperationTypeID(operationTypeId)
+
 	return &Model{
 		id:              id,
 		accountID:       accountId,
 		operationTypeID: OperationTypeID(operationTypeId),
-		amount:          amount,
-		balance:         balance,
+		amount:          moneyByOperation(amount, o),
+		balance:         moneyByOperation(balance, o),
 		eventDate:       time.Now(),
 	}
 }
@@ -67,11 +71,7 @@ func (m *Model) OperationTypeID() int {
 }
 
 func (m *Model) Amount() float64 {
-	if m.operationTypeID == Payment {
-		return asPositiveAmount(m.amount)
-	}
-
-	return asNegativeAmount(m.amount)
+	return m.amount
 }
 
 func (m *Model) Balance() float64 {
@@ -79,11 +79,15 @@ func (m *Model) Balance() float64 {
 }
 
 func (m *Model) Discharge(amount float64) (float64, error) {
-	if m.operationTypeID == Payment {
-		return amount, errors.New("Operation type Payment is not allowed")
+	if amount <= 0 {
+		return amount, ErrInsufficientAmount
 	}
 
-	amount = amount - asPositiveAmount(m.balance)
+	if m.operationTypeID == Payment {
+		return amount, ErrOperationTypeNotAllowed
+	}
+
+	amount = amount - (-m.balance)
 	if amount >= 0 {
 		m.balance = 0
 		return amount, nil
@@ -107,18 +111,14 @@ func (m *Model) Validate() map[string]string {
 	return errs
 }
 
-func asPositiveAmount(amount float64) float64 {
+func moneyByOperation(amount float64, operation OperationTypeID) float64 {
 	if amount < 0 {
-		return amount * -1
+		amount = -amount
 	}
 
-	return amount
-}
-
-func asNegativeAmount(amount float64) float64 {
-	if amount > 0 {
-		return amount * -1
+	if operation == Payment {
+		return amount
 	}
 
-	return amount
+	return -amount
 }

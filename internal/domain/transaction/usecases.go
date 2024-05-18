@@ -2,8 +2,10 @@ package transaction
 
 import (
 	"context"
+	"errors"
 
 	"github.com/adrianuf22/back-test-psmo/internal/domain/account"
+	"github.com/adrianuf22/back-test-psmo/internal/pkg/atomic"
 )
 
 type Usecase interface {
@@ -11,13 +13,13 @@ type Usecase interface {
 }
 
 type usecase struct {
-	service        Service
-	accountService account.Service
+	service        atomic.AtomicRepository[Repository]
+	accountService account.Repository
 }
 
-func NewUsecase(service Service, accountService account.Service) *usecase {
+func NewUsecase(atomicService atomic.AtomicRepository[Repository], accountService account.Repository) *usecase {
 	return &usecase{
-		service:        service,
+		service:        atomicService,
 		accountService: accountService,
 	}
 }
@@ -29,25 +31,38 @@ func (u *usecase) CreateTransaction(ctx context.Context, input Input) (*Model, e
 	}
 
 	transaction := NewTransaction(account.ID(), input.OperationTypeID, input.Amount)
-	err = u.service.Create(transaction)
 
-	if transaction.operationTypeID == Payment {
-		purchases, err := u.service.ReadAllPurchases(input.AccountID)
+	err = u.service.Execute(ctx, func(ctx context.Context, r Repository) error {
+		err = r.Create(ctx, transaction)
 		if err != nil {
-			// TODO
-			return nil, err
+			return err
 		}
 
-		paymentBalance := input.Amount
-		for _, p := range purchases {
-			if paymentBalance <= 0 {
+		if transaction.operationTypeID != Payment {
+			return nil
+		}
+
+		purchases, err := r.ReadAllPurchases(ctx, input.AccountID)
+		if err != nil {
+			return err
+		}
+
+		paymentBalance := transaction.amount
+		for ix, p := range purchases {
+			paymentBalance, err = p.Discharge(paymentBalance)
+			if errors.Is(err, ErrInsufficientAmount) {
 				break
 			}
-			paymentBalance, _ = p.Discharge(paymentBalance)
+
+			purchases[ix] = p
 		}
 
-		err = u.service.Save(purchases)
+		return r.UpdateAll(ctx, purchases)
+	})
+
+	if err != nil {
+		return nil, err
 	}
 
-	return transaction, err
+	return transaction, nil
 }
