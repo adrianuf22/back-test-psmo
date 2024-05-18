@@ -3,14 +3,14 @@ package postgres
 import (
 	"context"
 
-	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type healthRepo struct {
-	db *pgx.Conn
+	db *pgxpool.Conn
 }
 
-func NewHealthRepo(db *pgx.Conn) *healthRepo {
+func NewHealthRepo(db *pgxpool.Conn) *healthRepo {
 	return &healthRepo{
 		db: db,
 	}

@@ -10,6 +10,7 @@ import (
 	"github.com/adrianuf22/back-test-psmo/internal/pkg/atomic"
 	"github.com/adrianuf22/back-test-psmo/internal/pkg/sentinel"
 	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 //go:embed sql/create_transaction.sql
@@ -26,10 +27,10 @@ type transactRepo struct {
 }
 
 type atomicTransactRepo struct {
-	db *pgx.Conn
+	db *pgxpool.Conn
 }
 
-func NewTransactionRepo(db *pgx.Conn) atomicTransactRepo {
+func NewTransactionRepo(db *pgxpool.Conn) atomicTransactRepo {
 	return atomicTransactRepo{
 		db: db,
 	}

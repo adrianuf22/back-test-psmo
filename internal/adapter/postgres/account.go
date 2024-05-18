@@ -6,7 +6,7 @@ import (
 
 	"github.com/adrianuf22/back-test-psmo/internal/domain/account"
 	"github.com/adrianuf22/back-test-psmo/internal/pkg/sentinel"
-	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 //go:embed sql/get_account.sql
@@ -16,10 +16,10 @@ var getAccountSql string
 var createAccountSql string
 
 type accountRepo struct {
-	db *pgx.Conn
+	db *pgxpool.Conn
 }
 
-func NewAccountRepo(db *pgx.Conn) *accountRepo {
+func NewAccountRepo(db *pgxpool.Conn) *accountRepo {
 	return &accountRepo{
 		db: db,
 	}
