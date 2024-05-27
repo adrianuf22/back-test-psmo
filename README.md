@@ -1,4 +1,4 @@
-# back-test-psmo
+# go-sample-api
 
 A Golang REST API application using `http.ServeMux` router, `pgx` Postgres driver, `godotenv` with `envconfig` handle configuration.
 
